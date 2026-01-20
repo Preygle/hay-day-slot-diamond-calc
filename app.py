@@ -7,6 +7,21 @@ st.set_page_config(page_title="Hay Day Calculator", page_icon="🌾", layout="wi
 st.title("🌾 Hay Day Production Building Calculator")
 st.markdown("Calculate the number of diamonds and coins required to unlock remaining slots.")
 
+with st.expander("📖 **How to Use this Calculator**", expanded=True):
+    st.markdown("""
+    1. **Slot Range (Current ➔ Target)**: 
+       - Use the **Left Handle** to set how many slots you *currently* have.
+       - Use the **Right Handle** to set your *target* number of slots.
+       - The *Cost* is calculated for the difference between them.
+    
+    2. **Batch Calculation**:
+       - Adjust as many sliders as you like.
+       - Click the **"Calculate Costs"** button at the very bottom to update the totals.
+    
+    3. **Global Controls (Sidebar)**:
+       - Use **"Reduce Max Target By"** to automatically set all building targets to `Max - X` (e.g., set everyone to 7 slots instead of 9).
+    """)
+
 # Sidebar for Totals
 st.sidebar.header("Total Required")
 total_diamonds_placeholder = st.sidebar.empty()
@@ -175,7 +190,7 @@ with st.form("calculator_form"):
             with c_info:
                 try:
                     img = Image.open(filepath)
-                    st.image(img, use_container_width=True) 
+                    st.image(img, width="stretch") 
                 except Exception:
                     st.write("🖼️")
                 st.markdown(f"**{building_name}**")
