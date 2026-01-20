@@ -5,7 +5,7 @@ from PIL import Image
 st.set_page_config(page_title="Hay Day Calculator", page_icon="🌾", layout="wide")
 
 st.title("🌾 Hay Day Production Building Calculator")
-st.markdown("Calculate the number of diamonds and coins required to unlock slots for your production buildings.")
+st.markdown("Calculate the number of diamonds and coins required to unlock remaining slots.")
 
 # Sidebar for Totals
 st.sidebar.header("Total Required")
@@ -24,7 +24,6 @@ MULTI_INSTANCE_CONFIG = {
 EXCLUDED_BUILDINGS = ["Mine"]
 
 # Coin Configuration
-# Format: {BuildingName: {SlotNum: Cost}}
 COIN_CONFIG = {
     "Lobster Pool": {
         2: 45000, 3: 52500, 4: 63800, 5: 79800, 6: 102000
@@ -33,31 +32,48 @@ COIN_CONFIG = {
         2: 51000, 3: 59000, 4: 72000, 5: 90000, 6: 115000
     }
 }
+
+# Special Diamond Configuration
+SPECIAL_DIAMOND_CONFIG = {
+    "Net Maker": {3: 10, 4: 20, 5: 45, 6: 90, 7: 130, 8: 260, 9: 415},
+    "Lure Workbench": {3: 10, 4: 20, 5: 45, 6: 90, 7: 130, 8: 260, 9: 415}
+}
+
 MAX_SLOTS_DIAMOND = 9
 MAX_SLOTS_COIN = 6
 
-def calculate_diamond_cost(current_slots, start_slots):
-    # User Request: "if there are 2 slots, diamonds required in 105"
-    # This means calculate cost to unlock from (current_slots + 1) up to MAX_SLOTS_DIAMOND
-    if current_slots >= MAX_SLOTS_DIAMOND:
+# --- Logic Functions ---
+
+def calculate_diamond_cost(target_slots, start_slots, building_name=None):
+    # Calculate cost to reach 'target_slots' from 'start_slots'
+    if target_slots <= start_slots:
         return 0
     
     cost = 0
-    # Range of slots to pay for: next available slot up to max
-    for n in range(current_slots + 1, MAX_SLOTS_DIAMOND + 1):
+
+    # Check for special configuration first
+    if building_name and building_name in SPECIAL_DIAMOND_CONFIG:
+        config = SPECIAL_DIAMOND_CONFIG[building_name]
+        # Calculate cost for unlocking slots from start+1 up to target
+        for n in range(start_slots + 1, target_slots + 1):
+             cost += config.get(n, 0)
+        return cost
+
+    # Standard logic
+    for n in range(start_slots + 1, target_slots + 1):
         # Cost of unlocking slot n
-        # start_slots = 2. Unlock 3 (1st paid). paid_idx = 3-2-1 = 0. Cost 6.
+        # start_slots = 2. Slot 3 is 1st paid.
+        # paid_idx = 3 - 2 - 1 = 0 -> 6
         paid_idx = n - start_slots - 1
         step_cost = 6 + (paid_idx * 3)
         cost += step_cost
     return cost
 
-def calculate_coin_cost(current_slots, start_slots, cost_table):
-    # Inverted Logic: Calculate cost from (current_slots + 1) to MAX_SLOTS_COIN
-    if current_slots >= MAX_SLOTS_COIN:
+def calculate_coin_cost(target_slots, start_slots, cost_table):
+    if target_slots <= start_slots:
         return 0
     cost = 0
-    for n in range(current_slots + 1, MAX_SLOTS_COIN + 1):
+    for n in range(start_slots + 1, target_slots + 1):
         cost += cost_table.get(n, 0)
     return cost
 
@@ -75,82 +91,150 @@ if not os.path.exists(IMAGE_DIR):
 
 files = sorted([f for f in os.listdir(IMAGE_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
 
+# --- GLOBAL CONTROL ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("Global Controls")
+
+# 1. Reduce Max Targets
+reduce_amount = st.sidebar.slider(
+    "Reduce Max Target By", 
+    min_value=0, 
+    max_value=8, 
+    value=0,
+    help="Reduces the target slot count by this amount from the maximum."
+)
+
+if st.sidebar.button("Apply Reduction"):
+    for f in files:
+        b_name = get_building_name(f)
+        if b_name in EXCLUDED_BUILDINGS: continue
+        
+        # Identify max slots for this building
+        is_c = b_name in COIN_CONFIG
+        m_slots = MAX_SLOTS_COIN if is_c else MAX_SLOTS_DIAMOND
+        
+        # Determine start slots (standard or custom)
+        if b_name == "Smelter":
+            s_slots = 1
+        elif b_name == "Feed Mill":
+            s_slots = 3
+        elif is_c:
+            s_slots = 1
+        else:
+            s_slots = 2
+        
+        # Calculate new target
+        new_target = m_slots - reduce_amount
+        
+        # Only apply if valid (Target >= Start)
+        if new_target >= s_slots:
+            i_count = MULTI_INSTANCE_CONFIG.get(b_name, 1)
+            for i in range(i_count):
+                key = f"slider_{f}_{i}"
+                # We set the range to (Start, New Target)
+                # This implies user wants to unlock UP TO this new target.
+                # Or should we respect existing start? 
+                # Usually global control overrides. Let's reset start to default.
+                st.session_state[key] = (s_slots, new_target)
+    st.rerun()
+
 st.subheader("Adjust Slots per Building")
 
-# Use single column layout as requested
-for idx, filename in enumerate(files):
-    building_name = get_building_name(filename)
-    
-    if building_name in EXCLUDED_BUILDINGS:
-        continue
-
-    # Setup Defaults
-    instance_count = MULTI_INSTANCE_CONFIG.get(building_name, 1)
-    
-    if building_name == "Smelter":
-        start_slots = 1
-    elif building_name == "Feed Mill":
-        start_slots = 3
-    elif building_name in COIN_CONFIG:
-        start_slots = 1
-    else:
-        start_slots = 2
-    
-    # Determine type (Coin vs Diamond)
-    is_coin = building_name in COIN_CONFIG
-    max_slots = MAX_SLOTS_COIN if is_coin else MAX_SLOTS_DIAMOND
-    currency_label = "Coins 💰" if is_coin else "Diamonds 💎"
-    
-    filepath = os.path.join(IMAGE_DIR, filename)
-
-    with st.container(border=True):
-        # Two columns inside the card: Image | Sliders
-        c1, c2 = st.columns([1, 2])
+# FORM START
+with st.form("calculator_form"):
+    # Render Loop
+    for idx, filename in enumerate(files):
+        building_name = get_building_name(filename)
         
-        with c1:
-            try:
-                img = Image.open(filepath)
-                st.image(img, width=150) # Fixed width for uniformity
-            except Exception as e:
-                st.error(f"Error loading image: {e}")
-            st.markdown(f"**{building_name}**")
+        if building_name in EXCLUDED_BUILDINGS:
+            continue
 
-        with c2:
-            current_building_cost = 0
-            for i in range(instance_count):
-                label = "Slots"
-                # Helper label to distinguish behaviors - NOW BOTH ARE SAME LOGIC
-                help_text = "Add number of slots unlocked"
+        # Setup Defaults
+        instance_count = MULTI_INSTANCE_CONFIG.get(building_name, 1)
+        
+        if building_name == "Smelter":
+            default_start = 1
+        elif building_name == "Feed Mill":
+            default_start = 3
+        elif building_name in COIN_CONFIG:
+            default_start = 1
+        else:
+            default_start = 2
+        
+        # Determine type (Coin vs Diamond)
+        is_coin = building_name in COIN_CONFIG
+        max_slots = MAX_SLOTS_COIN if is_coin else MAX_SLOTS_DIAMOND
+        currency_label = "Coins 💰" if is_coin else "Diamonds 💎"
+        
+        filepath = os.path.join(IMAGE_DIR, filename)
+
+        with st.container(border=True):
+            # Two main columns: Info (Left) | Controls (Right)
+            c_info, c_controls = st.columns([1, 3])
+            
+            with c_info:
+                try:
+                    img = Image.open(filepath)
+                    st.image(img, use_container_width=True) 
+                except Exception:
+                    st.write("🖼️")
+                st.markdown(f"**{building_name}**")
+
+            with c_controls:
+                current_building_cost = 0
                 
-                if instance_count > 1:
-                    label = f"{building_name} {i+1} - {help_text}"
+                # Loop for each instance (e.g. 5 smelters)
+                for i in range(instance_count):
+                    # Unique session key for slider
+                    key = f"slider_{filename}_{i}"
+                    
+                    # Initialize default key if strictly needed for range
+                    # Note: st.slider inside form reads from key on Rerun, 
+                    # but if we just set it via sidebar it works!
+                    if key not in st.session_state:
+                         st.session_state[key] = (default_start, max_slots)
+
+                    # Instance Label if multiple
+                    label = "Slot Range (Current -> Target)"
+                    if instance_count > 1:
+                        label = f"{building_name} #{i+1} Range"
+
+                    # RANGE SLIDER
+                    slider_vals = st.slider(
+                        label,
+                        min_value=default_start, 
+                        max_value=max_slots,
+                        key=key,
+                        help="Left handle: Current Slots. Right handle: Target Slots."
+                    )
+                    
+                    if isinstance(slider_vals, tuple):
+                         s_current, s_target = slider_vals
+                    else:
+                         s_current, s_target = slider_vals, slider_vals
+
+                    # Calculate Cost
+                    cost = 0
+                    if is_coin:
+                        cost = calculate_coin_cost(s_target, s_current, COIN_CONFIG[building_name])
+                        total_coins += cost
+                    else:
+                        cost = calculate_diamond_cost(s_target, s_current, building_name)
+                        total_diamonds += cost
+                    
+                    current_building_cost += cost
+                
+                # Summary for this building
+                # Because we are in a form, this logic runs on 'Submit' reruns.
+                # Or initial run.
+                if current_building_cost > 0:
+                     st.info(f"Cost: {current_building_cost:,} {currency_label}")
                 else:
-                    label = f"{label} - {help_text} for {building_name}"
-                
-                key = f"slider_{filename}_{i}"
-                slots = st.slider(
-                    label, 
-                    min_value=start_slots, 
-                    max_value=max_slots, 
-                    value=max_slots, 
-                    key=key
-                )
-                
-                cost = 0
-                if is_coin:
-                    cost = calculate_coin_cost(slots, start_slots, COIN_CONFIG[building_name])
-                    total_coins += cost
-                    caption = f"Remaining to Max: {cost:,}"
-                else:
-                    cost = calculate_diamond_cost(slots, start_slots)
-                    total_diamonds += cost
-                    caption = f"Remaining to Max: {cost:,}"
-                
-                current_building_cost += cost
+                     st.success("Analysis: No cost")
 
-            if current_building_cost > 0:
-                 st.info(f"{currency_label} {caption.split(':')[0]}: {current_building_cost:,}")
+    st.markdown("---")
+    submitted = st.form_submit_button("Calculate Costs", type="primary", use_container_width=True)
 
-# Update Sidebar Totals
+# Update Sidebar Totals (Outside Form)
 total_diamonds_placeholder.metric("Diamonds 💎", total_diamonds)
 total_coins_placeholder.metric("Coins 💰", f"{total_coins:,}")
