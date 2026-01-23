@@ -1,5 +1,7 @@
 # 🌾 Hay Day Production Building Calculator
 
+Link to the app: https://diamond-calc.streamlit.app
+
 A powerful tool to help Hay Day players optimize their diamond and coin usage when unlocking slots for production buildings. This application calculates the costs required to reach your target slot counts, helping you plan your resources effectively.
 
 ## ✨ Features
@@ -14,11 +16,6 @@ A powerful tool to help Hay Day players optimize their diamond and coin usage wh
     - Includes special pricing rules for Net Maker and Lure Workbench.
 
 ## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.7 or higher
-- [Streamlit](https://streamlit.io/)
 
 ### Installation
 
@@ -47,17 +44,6 @@ Launch the application locally:
 streamlit run app.py
 ```
 
-## ☁️ Deployment on Streamlit Cloud
-
-This project is ready to be deployed on [Streamlit Community Cloud](https://streamlit.io/cloud) for free!
-
-1. **Push your code to GitHub.** Ensure `requirements.txt` is in the root directory.
-2. **Log in to Streamlit Cloud** with your GitHub account.
-3. **Click "New app".**
-4. **Select your repository, branch, and main file path** (e.g., `app.py`).
-5. **Click "Deploy".**
-
-Streamlit Cloud will automatically detect `requirements.txt`, install the dependencies, and launch your app.
 
 ## 🛠️ Configuration
 
