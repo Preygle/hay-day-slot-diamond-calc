@@ -2,7 +2,10 @@
 
 Link to the app: https://diamond-calc.streamlit.app
 
+![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fdiamond-calc.streamlit.app&label=Visitors&countColor=%23263759)
+
 A powerful tool to help Hay Day players optimize their diamond and coin usage when unlocking slots for production buildings. This application calculates the costs required to reach your target slot counts, helping you plan your resources effectively.
+
 
 ## ✨ Features
 
@@ -15,13 +18,14 @@ A powerful tool to help Hay Day players optimize their diamond and coin usage wh
     - Distinguishes between Diamond-cost and Coin-cost buildings (e.g., Duck Salon, Lobster Pool).
     - Includes special pricing rules for Net Maker and Lure Workbench.
 
+
 ## 🚀 Getting Started
 
 ### Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/Preygle/hay-day-slot-diamond-calc.git
    cd production-building-diamond
    ```
 
@@ -49,7 +53,7 @@ streamlit run app.py
 
 - **`requirements.txt`**: Lists all Python dependencies (`streamlit`, `Pillow`, `requests`, `beautifulsoup4`).
 - **`img_scrape.py`**: Scraper script to populate the image directory.
-- **`app.py`**: Main application logic.
+- **`app.py`**: Main application and website logic.
 
 ## 📄 License
 
