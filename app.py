@@ -1,6 +1,17 @@
 import streamlit as st
 import os
 from PIL import Image
+
+# Monkeypatch for streamlit_analytics which uses removed experimental_get_query_params
+try:
+    if not hasattr(st, "experimental_get_query_params"):
+        # st.query_params returns a dict-like object. 
+        # experimental_get_query_params returned {key: [val, ...]}
+        # We'll map it to match the expected format roughly or just dict
+        st.experimental_get_query_params = lambda: {k: [v] for k, v in st.query_params.items()}
+except AttributeError:
+    pass
+
 import streamlit_analytics
 
 st.set_page_config(page_title="Hay Day Calculator", page_icon="🌾", layout="wide")
