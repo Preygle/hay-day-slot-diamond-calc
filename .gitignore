@@ -2,3 +2,5 @@ venv/
 __pycache__/
 *.pyc
 .streamlit/
+.vscode/
+frontend/node_modules/

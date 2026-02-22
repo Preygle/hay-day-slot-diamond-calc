@@ -1,6 +1,8 @@
 # 🌾 Hay Day Production Building Calculator
 
-Link to the app: https://diamond-calc.streamlit.app
+### Live Deployments
+- **Streamlit Version**: [https://diamond-calc.streamlit.app](https://diamond-calc.streamlit.app)
+- **React Web App (Render)**: [https://your-react-app.onrender.com](https://your-react-app.onrender.com) *(Placeholder)*
 
 ![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fdiamond-calc.streamlit.app&label=Visitors&countColor=%23263759)
 
