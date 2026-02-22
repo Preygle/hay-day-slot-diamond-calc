@@ -1,10 +1,10 @@
 # 🌾 Hay Day Production Building Calculator
 
 ### Live Deployments
+- **React Web App (Render)**: [https://hay-day-slot-diamond-calc.onrender.com](https://hay-day-slot-diamond-calc.onrender.com)
 - **Streamlit Version**: [https://diamond-calc.streamlit.app](https://diamond-calc.streamlit.app)
-- **React Web App (Render)**: [https://your-react-app.onrender.com](https://your-react-app.onrender.com) *(Placeholder)*
 
-![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fdiamond-calc.streamlit.app&label=Visitors&countColor=%23263759)
+![React Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fhay-day-slot-diamond-calc.onrender.com&label=React+Visitors&countColor=%233b82f6) ![Streamlit Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fdiamond-calc.streamlit.app&label=Streamlit+Visitors&countColor=%23263759)
 
 A powerful tool to help Hay Day players optimize their diamond and coin usage when unlocking slots for production buildings. This application calculates the costs required to reach your target slot counts, helping you plan your resources effectively.
 
